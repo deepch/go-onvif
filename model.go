@@ -8,3 +8,12 @@ type Device struct {
 	User     string
 	Password string
 }
+
+// DeviceInformation contains information of ONVIF camera
+type DeviceInformation struct {
+	FirmwareVersion string
+	HardwareID      string
+	Manufacturer    string
+	Model           string
+	SerialNumber    string
+}
