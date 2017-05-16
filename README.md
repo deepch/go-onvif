@@ -4,12 +4,7 @@ Go-ONVIF is a Go package for communicating with network camera which supports th
 
 ## Progress
 
-This package is still in develoment following [guide](https://www.onvif.org/wp-content/uploads/2016/12/ONVIF_WG-APG-Application_Programmers_Guide-1.pdf) from ONVIF, with several features already available :
-
-- [X] Camera discovery
-  - [X] Send discovery request
-  - [X] Read discovery response
-- [ ] Initial camera setup and administration
+This package is still in develoment following [guide](https://www.onvif.org/wp-content/uploads/2016/12/ONVIF_WG-APG-Application_Programmers_Guide-1.pdf) from ONVIF, with several [features](TODO.md) already available.
 
 ## License
 
