@@ -5,15 +5,6 @@ var deviceXMLNs = []string{
 	`xmlns:tt="http://www.onvif.org/ver10/schema"`,
 }
 
-// Device contains data of ONVIF camera
-type Device struct {
-	ID       string
-	Name     string
-	XAddr    string
-	User     string
-	Password string
-}
-
 // GetSystemDateAndTime fetch date and time from ONVIF camera
 func (device Device) GetSystemDateAndTime() (string, error) {
 	// Create SOAP
