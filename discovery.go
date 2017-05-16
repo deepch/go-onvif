@@ -14,19 +14,19 @@ import (
 var errWrongDiscoveryResponse = errors.New("Response is not related to discovery request")
 
 // StartDiscovery send a WS-Discovery message and wait for all matching device to respond
-func StartDiscovery() ([]Device, error) {
+func StartDiscovery(duration time.Duration) ([]Device, error) {
 	// Create initial discovery results
 	discoveryResults := []Device{}
 
-	// Create WS-Discovery message
-	messageID := "uuid:" + uuid.NewV4().String()
-	message := `<?xml version="1.0" encoding="UTF-8"?>
+	// Create WS-Discovery request
+	requestID := "uuid:" + uuid.NewV4().String()
+	request := `<?xml version="1.0" encoding="UTF-8"?>
 		<s:Envelope
 			xmlns:s="http://www.w3.org/2003/05/soap-envelope"
 			xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">
 			<s:Header>
 				<a:Action s:mustUnderstand="1">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</a:Action>
-				<a:MessageID>` + messageID + `</a:MessageID>
+				<a:MessageID>` + requestID + `</a:MessageID>
 				<a:ReplyTo>
 					<a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address>
 				</a:ReplyTo>
@@ -44,8 +44,8 @@ func StartDiscovery() ([]Device, error) {
 		</s:Envelope>`
 
 	// Clean WS-Discovery message
-	message = regexp.MustCompile(`\>\s+\<`).ReplaceAllString(message, "><")
-	message = regexp.MustCompile(`\s+`).ReplaceAllString(message, " ")
+	request = regexp.MustCompile(`\>\s+\<`).ReplaceAllString(request, "><")
+	request = regexp.MustCompile(`\s+`).ReplaceAllString(request, " ")
 
 	// Create UDP address for local and multicast address
 	localAddress, err := net.ResolveUDPAddr("udp4", ":0")
@@ -66,13 +66,13 @@ func StartDiscovery() ([]Device, error) {
 	defer conn.Close()
 
 	// Set connection's timeout
-	err = conn.SetDeadline(time.Now().Add(1 * time.Second))
+	err = conn.SetDeadline(time.Now().Add(duration))
 	if err != nil {
 		return discoveryResults, err
 	}
 
 	// Send WS-Discovery request to multicast address
-	_, err = conn.WriteToUDP([]byte(message), multicastAddress)
+	_, err = conn.WriteToUDP([]byte(request), multicastAddress)
 	if err != nil {
 		return discoveryResults, err
 	}
@@ -93,7 +93,7 @@ func StartDiscovery() ([]Device, error) {
 		}
 
 		// Read and parse WS-Discovery response
-		device, err := readDiscoveryResponse(messageID, buffer)
+		device, err := readDiscoveryResponse(requestID, buffer)
 		if err != nil && err != errWrongDiscoveryResponse {
 			return discoveryResults, err
 		}
@@ -117,29 +117,18 @@ func readDiscoveryResponse(messageID string, buffer []byte) (Device, error) {
 	}
 
 	// Check if this response is for our request
-	responseMessageID, err := mapXML.ValueForPathString("Envelope.Header.RelatesTo")
-	if err != nil {
-		return result, err
-	}
-
+	responseMessageID, _ := mapXML.ValueForPathString("Envelope.Header.RelatesTo")
 	if responseMessageID != messageID {
 		return result, errWrongDiscoveryResponse
 	}
 
 	// Get device's ID and clean it
-	deviceID, err := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.EndpointReference.Address")
-	if err != nil {
-		return result, err
-	}
+	deviceID, _ := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.EndpointReference.Address")
 	deviceID = strings.Replace(deviceID, "urn:uuid", "", 1)
 
 	// Get device's name
-	scopes, err := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.Scopes")
-	if err != nil {
-		return result, err
-	}
-
 	deviceName := ""
+	scopes, _ := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.Scopes")
 	for _, scope := range strings.Split(scopes, " ") {
 		if strings.HasPrefix(scope, "onvif://www.onvif.org/name/") {
 			deviceName = strings.Replace(scope, "onvif://www.onvif.org/name/", "", 1)
@@ -148,16 +137,17 @@ func readDiscoveryResponse(messageID string, buffer []byte) (Device, error) {
 		}
 	}
 
-	// Get device's XAddrs
-	xAddrs, err := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.XAddrs")
-	if err != nil {
-		return result, err
+	// Get device's xAddrs
+	xAddrs, _ := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.XAddrs")
+	listXAddr := strings.Split(xAddrs, " ")
+	if len(listXAddr) == 0 {
+		return result, errors.New("Device does not have any xAddr")
 	}
 
 	// Finalize result
 	result.ID = deviceID
 	result.Name = deviceName
-	result.XAddrs = strings.Split(xAddrs, " ")
+	result.XAddr = listXAddr[0]
 
 	return result, nil
 }
