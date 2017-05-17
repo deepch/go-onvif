@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"encoding/json"
+	"strings"
 )
 
 var deviceXMLNs = []string{
@@ -11,9 +12,6 @@ var deviceXMLNs = []string{
 
 // GetDeviceInformation fetch information of ONVIF camera
 func (device Device) GetDeviceInformation() (DeviceInformation, error) {
-	// Create initial result
-	result := DeviceInformation{}
-
 	// Create SOAP
 	soap := SOAP{
 		Body:  "<tds:GetDeviceInformation/>",
@@ -23,17 +21,18 @@ func (device Device) GetDeviceInformation() (DeviceInformation, error) {
 	// Send SOAP request
 	response, err := soap.SendRequest(device.XAddr)
 	if err != nil {
-		return result, err
+		return DeviceInformation{}, err
 	}
 
 	// Parse response to interface
 	deviceInfo, err := response.ValueForPath("Envelope.Body.GetDeviceInformationResponse")
 	if err != nil {
-		return result, err
+		return DeviceInformation{}, err
 	}
 
 	// Parse interface to struct
-	err = device.interfaceToStruct(&deviceInfo, &result)
+	result := DeviceInformation{}
+	err = interfaceToStruct(&deviceInfo, &result)
 	if err != nil {
 		return result, err
 	}
@@ -45,7 +44,7 @@ func (device Device) GetDeviceInformation() (DeviceInformation, error) {
 func (device Device) GetSystemDateAndTime() (string, error) {
 	// Create SOAP
 	soap := SOAP{
-		Body:  "<tds:GetSystemDateAndTime/>",
+		Body:  "</tds:GetSystemDateAndTime>",
 		XMLNs: deviceXMLNs,
 	}
 
@@ -60,7 +59,93 @@ func (device Device) GetSystemDateAndTime() (string, error) {
 	return dateTime, nil
 }
 
-func (device Device) interfaceToStruct(src, dst interface{}) error {
+// GetCapabilities fetch info of ONVIF camera's capabilities
+func (device Device) GetCapabilities() (DeviceCapabilities, error) {
+	// Create SOAP
+	soap := SOAP{
+		XMLNs: deviceXMLNs,
+		Body:  `<tds:GetCapabilities></tds:Category></tds:GetCapabilities>`,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return DeviceCapabilities{}, err
+	}
+
+	// Get network capabilities
+	envelopeBodyPath := "Envelope.Body.GetCapabilitiesResponse.Capabilities"
+	ifaceNetCap, err := response.ValueForPath(envelopeBodyPath + ".Device.Network")
+	if err != nil {
+		return DeviceCapabilities{}, err
+	}
+
+	netCap := NetworkCapabilities{}
+	mapNetCap, ok := ifaceNetCap.(map[string]interface{})
+	if ok {
+		netCap.DynDNS = interfaceToBool(mapNetCap["DynDNS"])
+		netCap.IPFilter = interfaceToBool(mapNetCap["IPFilter"])
+		netCap.IPVersion6 = interfaceToBool(mapNetCap["IPVersion6"])
+		netCap.ZeroConfig = interfaceToBool(mapNetCap["ZeroConfiguration"])
+		netCap.Extension = make(map[string]bool)
+
+		if mapNetExtension, ok := mapNetCap["Extension"].(map[string]interface{}); ok {
+			for key, value := range mapNetExtension {
+				netCap.Extension[key] = interfaceToBool(value)
+			}
+		}
+	}
+
+	// Get events capabilities
+	ifaceEventsCap, err := response.ValueForPath(envelopeBodyPath + ".Events")
+	if err != nil {
+		return DeviceCapabilities{}, err
+	}
+
+	eventsCap := make(map[string]bool)
+	if mapEventsCap, ok := ifaceEventsCap.(map[string]interface{}); ok {
+		for key, value := range mapEventsCap {
+			if strings.ToLower(key) == "xaddr" {
+				continue
+			}
+
+			key = strings.Replace(key, "WS", "", 1)
+			eventsCap[key] = interfaceToBool(value)
+		}
+	}
+
+	// Get events capabilities
+	ifaceStreamingCap, err := response.ValueForPath(envelopeBodyPath + ".Media.StreamingCapabilities")
+	if err != nil {
+		return DeviceCapabilities{}, err
+	}
+
+	streamingCap := make(map[string]bool)
+	if mapStreamingCap, ok := ifaceStreamingCap.(map[string]interface{}); ok {
+		for key, value := range mapStreamingCap {
+			key = strings.Replace(key, "_", " ", -1)
+			streamingCap[key] = interfaceToBool(value)
+		}
+	}
+
+	// Get PTZ capabilities
+	ptzCap := true
+	if _, err = response.ValueForPath(envelopeBodyPath + ".PTZ"); err != nil {
+		ptzCap = false
+	}
+
+	// Create final result
+	deviceCapabilities := DeviceCapabilities{
+		Network:   netCap,
+		Events:    eventsCap,
+		Streaming: streamingCap,
+		PTZ:       ptzCap,
+	}
+
+	return deviceCapabilities, nil
+}
+
+func interfaceToStruct(src, dst interface{}) error {
 	bt, err := json.Marshal(&src)
 	if err != nil {
 		return err
@@ -72,4 +157,14 @@ func (device Device) interfaceToStruct(src, dst interface{}) error {
 	}
 
 	return nil
+}
+
+func interfaceToString(src interface{}) string {
+	str, _ := src.(string)
+	return str
+}
+
+func interfaceToBool(src interface{}) bool {
+	strBool := interfaceToString(src)
+	return strings.ToLower(strBool) == "true"
 }

@@ -1,15 +1,8 @@
 - [X] Camera discovery
-- [ ] OnvifDevice
-  - [ ] getInformation
-  - [ ] getCurrentProfile
-  - [ ] getProfileList
-  - [ ] changeProfile
-  - [ ] getUdpStreamUrl
-  - [ ] fetchSnapshot
-  - [ ] ptzMove
-  - [ ] ptzStop
 - [ ] OnvifServiceDevice
-  - [ ] getCapabilities
+  - [X] getDeviceInformation
+  - [X] getSystemDateAndTime
+  - [X] getCapabilities
   - [ ] getWsdlUrl
   - [ ] getDiscoveryMode
   - [ ] getScopes
@@ -25,8 +18,6 @@
   - [ ] setNetworkProtocols
   - [ ] getNetworkDefaultGateway
   - [ ] setNetworkDefaultGateway
-  - [ ] getDeviceInformation
-  - [X] getSystemDateAndTime
   - [ ] reboot
   - [ ] getUsers
   - [ ] createUsers
