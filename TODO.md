@@ -30,13 +30,13 @@
   - [ ] getServices
   - [ ] getServiceCapabilities
 - [ ] OnvifServiceMedia
-  - [ ] getStreamUri
+  - [X] getProfiles
+  - [X] getStreamUri
   - [ ] getVideoEncoderConfigurations
   - [ ] getVideoEncoderConfiguration
   - [ ] getCompatibleVideoEncoderConfigurations
   - [ ] getVideoEncoderConfigurationOptions
   - [ ] getGuaranteedNumberOfVideoEncoderInstances
-  - [ ] getProfiles
   - [ ] getProfile
   - [ ] createProfile
   - [ ] deleteProfile

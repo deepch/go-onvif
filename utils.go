@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,12 @@ func interfaceToString(src interface{}) string {
 func interfaceToBool(src interface{}) bool {
 	strBool := interfaceToString(src)
 	return strings.ToLower(strBool) == "true"
+}
+
+func interfaceToInt(src interface{}) int {
+	strNumber := interfaceToString(src)
+	number, _ := strconv.Atoi(strNumber)
+	return number
 }
 
 func prettyJSON(src interface{}) string {

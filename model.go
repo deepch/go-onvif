@@ -38,3 +38,71 @@ type HostnameInformation struct {
 	Name     string
 	FromDHCP bool
 }
+
+// MediaBounds contains resolution of a video media
+type MediaBounds struct {
+	Height int
+	Width  int
+}
+
+// MediaSourceConfig contains configuration of a media source
+type MediaSourceConfig struct {
+	Name        string
+	Token       string
+	SourceToken string
+	Bounds      MediaBounds
+}
+
+// VideoRateControl contains rate control of a video
+type VideoRateControl struct {
+	BitrateLimit     int
+	EncodingInterval int
+	FrameRateLimit   int
+}
+
+// VideoEncoderConfig contains configuration of a video encoder
+type VideoEncoderConfig struct {
+	Name           string
+	Token          string
+	Encoding       string
+	Quality        int
+	RateControl    VideoRateControl
+	Resolution     MediaBounds
+	SessionTimeout string
+}
+
+// AudioEncoderConfig contains configuration of an audio encoder
+type AudioEncoderConfig struct {
+	Name           string
+	Token          string
+	Encoding       string
+	Bitrate        int
+	SampleRate     int
+	SessionTimeout string
+}
+
+// PTZConfig contains configuration of a PTZ control in camera
+type PTZConfig struct {
+	Name      string
+	Token     string
+	NodeToken string
+}
+
+// MediaProfile contains media profile of an ONVIF camera
+type MediaProfile struct {
+	Name               string
+	Token              string
+	VideoSourceConfig  MediaSourceConfig
+	VideoEncoderConfig VideoEncoderConfig
+	AudioSourceConfig  MediaSourceConfig
+	AudioEncoderConfig AudioEncoderConfig
+	PTZConfig          PTZConfig
+}
+
+// MediaURI contains streaming URI of an ONVIF camera
+type MediaURI struct {
+	URI                 string
+	Timeout             string
+	InvalidAfterConnect bool
+	InvalidAfterReboot  bool
+}
