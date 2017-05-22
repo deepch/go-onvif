@@ -20,28 +20,25 @@ func StartDiscovery(duration time.Duration) ([]Device, error) {
 
 	// Create WS-Discovery request
 	requestID := "uuid:" + uuid.NewV4().String()
-	request := `<?xml version="1.0" encoding="UTF-8"?>
-		<s:Envelope
-			xmlns:s="http://www.w3.org/2003/05/soap-envelope"
-			xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing">
-			<s:Header>
-				<a:Action s:mustUnderstand="1">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</a:Action>
-				<a:MessageID>` + requestID + `</a:MessageID>
-				<a:ReplyTo>
-					<a:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</a:Address>
-				</a:ReplyTo>
-				<a:To s:mustUnderstand="1">urn:schemas-xmlsoap-org:ws:2005:04:discovery</a:To>
-			</s:Header>
-			<s:Body>
-				<Probe
-					xmlns="http://schemas.xmlsoap.org/ws/2005/04/discovery">
-					<d:Types
-						xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery"
-						xmlns:dp0="http://www.onvif.org/ver10/network/wsdl">dp0:NetworkVideoTransmitter
-					</d:Types>
-				</Probe>
-			</s:Body>
-		</s:Envelope>`
+	request := `		
+		<?xml version="1.0" encoding="UTF-8"?>
+		<e:Envelope
+		    xmlns:e="http://www.w3.org/2003/05/soap-envelope"
+		    xmlns:w="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+		    xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery"
+		    xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
+		    <e:Header>
+		        <w:MessageID>` + requestID + `</w:MessageID>
+		        <w:To e:mustUnderstand="true">urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To>
+		        <w:Action a:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe
+		        </w:Action>
+		    </e:Header>
+		    <e:Body>
+		        <d:Probe>
+		            <d:Types>dn:NetworkVideoTransmitter</d:Types>
+		        </d:Probe>
+		    </e:Body>
+		</e:Envelope>`
 
 	// Clean WS-Discovery message
 	request = regexp.MustCompile(`\>\s+\<`).ReplaceAllString(request, "><")
