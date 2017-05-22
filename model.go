@@ -21,7 +21,6 @@ type DeviceInformation struct {
 // NetworkCapabilities contains networking capabilities of ONVIF camera
 type NetworkCapabilities struct {
 	DynDNS     bool
-	Extension  map[string]bool
 	IPFilter   bool
 	IPVersion6 bool
 	ZeroConfig bool
@@ -32,7 +31,6 @@ type DeviceCapabilities struct {
 	Network   NetworkCapabilities
 	Events    map[string]bool
 	Streaming map[string]bool
-	PTZ       bool
 }
 
 // HostnameInformation contains hostname info of an ONVIF camera

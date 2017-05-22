@@ -10,8 +10,8 @@ var deviceXMLNs = []string{
 	`xmlns:tt="http://www.onvif.org/ver10/schema"`,
 }
 
-// GetDeviceInformation fetch information of ONVIF camera
-func (device Device) GetDeviceInformation() (DeviceInformation, error) {
+// GetInformation fetch information of ONVIF camera
+func (device Device) GetInformation() (DeviceInformation, error) {
 	// Create SOAP
 	soap := SOAP{
 		Body:  "<tds:GetDeviceInformation/>",
@@ -67,7 +67,9 @@ func (device Device) GetCapabilities() (DeviceCapabilities, error) {
 	// Create SOAP
 	soap := SOAP{
 		XMLNs: deviceXMLNs,
-		Body:  `<tds:GetCapabilities></tds:Category></tds:GetCapabilities>`,
+		Body: `<tds:GetCapabilities>
+			<tds:Category>All</tds:Category>
+		</tds:GetCapabilities>`,
 	}
 
 	// Send SOAP request
@@ -84,19 +86,11 @@ func (device Device) GetCapabilities() (DeviceCapabilities, error) {
 	}
 
 	netCap := NetworkCapabilities{}
-	mapNetCap, ok := ifaceNetCap.(map[string]interface{})
-	if ok {
+	if mapNetCap, ok := ifaceNetCap.(map[string]interface{}); ok {
 		netCap.DynDNS = interfaceToBool(mapNetCap["DynDNS"])
 		netCap.IPFilter = interfaceToBool(mapNetCap["IPFilter"])
 		netCap.IPVersion6 = interfaceToBool(mapNetCap["IPVersion6"])
 		netCap.ZeroConfig = interfaceToBool(mapNetCap["ZeroConfiguration"])
-		netCap.Extension = make(map[string]bool)
-
-		if mapNetExtension, ok := mapNetCap["Extension"].(map[string]interface{}); ok {
-			for key, value := range mapNetExtension {
-				netCap.Extension[key] = interfaceToBool(value)
-			}
-		}
 	}
 
 	// Get events capabilities
@@ -117,7 +111,7 @@ func (device Device) GetCapabilities() (DeviceCapabilities, error) {
 		}
 	}
 
-	// Get events capabilities
+	// Get streaming capabilities
 	ifaceStreamingCap, err := response.ValueForPath(envelopeBodyPath + ".Media.StreamingCapabilities")
 	if err != nil {
 		return DeviceCapabilities{}, err
@@ -131,18 +125,11 @@ func (device Device) GetCapabilities() (DeviceCapabilities, error) {
 		}
 	}
 
-	// Get PTZ capabilities
-	ptzCap := true
-	if _, err = response.ValueForPath(envelopeBodyPath + ".PTZ"); err != nil {
-		ptzCap = false
-	}
-
 	// Create final result
 	deviceCapabilities := DeviceCapabilities{
 		Network:   netCap,
 		Events:    eventsCap,
 		Streaming: streamingCap,
-		PTZ:       ptzCap,
 	}
 
 	return deviceCapabilities, nil
