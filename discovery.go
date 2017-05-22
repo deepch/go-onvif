@@ -121,7 +121,7 @@ func readDiscoveryResponse(messageID string, buffer []byte) (Device, error) {
 
 	// Get device's ID and clean it
 	deviceID, _ := mapXML.ValueForPathString("Envelope.Body.ProbeMatches.ProbeMatch.EndpointReference.Address")
-	deviceID = strings.Replace(deviceID, "urn:uuid", "", 1)
+	deviceID = strings.Replace(deviceID, "urn:uuid:", "", 1)
 
 	// Get device's name
 	deviceName := ""
