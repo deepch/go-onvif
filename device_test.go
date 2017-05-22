@@ -6,14 +6,10 @@ import (
 	"testing"
 )
 
-var defaultDevice = Device{
-	XAddr: "http://192.168.1.75:5000/onvif/device_service",
-}
-
 func TestGetInformation(t *testing.T) {
 	log.Println("Test GetInformation")
 
-	res, err := defaultDevice.GetInformation()
+	res, err := testDevice.GetInformation()
 	if err != nil {
 		t.Error(err)
 	}
@@ -25,7 +21,7 @@ func TestGetInformation(t *testing.T) {
 func TestGetCapabilities(t *testing.T) {
 	log.Println("Test GetCapabilities")
 
-	res, err := defaultDevice.GetCapabilities()
+	res, err := testDevice.GetCapabilities()
 	if err != nil {
 		t.Error(err)
 	}
@@ -37,7 +33,7 @@ func TestGetCapabilities(t *testing.T) {
 func TestGetDiscoveryMode(t *testing.T) {
 	log.Println("Test GetDiscoveryMode")
 
-	res, err := defaultDevice.GetDiscoveryMode()
+	res, err := testDevice.GetDiscoveryMode()
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,7 +44,7 @@ func TestGetDiscoveryMode(t *testing.T) {
 func TestGetScopes(t *testing.T) {
 	log.Println("Test GetScopes")
 
-	res, err := defaultDevice.GetScopes()
+	res, err := testDevice.GetScopes()
 	if err != nil {
 		t.Error(err)
 	}
@@ -60,7 +56,7 @@ func TestGetScopes(t *testing.T) {
 func TestGetHostname(t *testing.T) {
 	log.Println("Test GetHostname")
 
-	res, err := defaultDevice.GetHostname()
+	res, err := testDevice.GetHostname()
 	if err != nil {
 		t.Error(err)
 	}

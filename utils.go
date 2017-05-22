@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+var testDevice = Device{
+	XAddr: "http://192.168.1.75:5000/onvif/device_service",
+}
+
 func interfaceToString(src interface{}) string {
 	str, _ := src.(string)
 	return str
