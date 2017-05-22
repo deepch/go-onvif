@@ -35,7 +35,6 @@ type DeviceCapabilities struct {
 
 // HostnameInformation contains hostname info of an ONVIF camera
 type HostnameInformation struct {
-	Name      string
-	FromDHCP  bool
-	Extension string
+	Name     string
+	FromDHCP bool
 }

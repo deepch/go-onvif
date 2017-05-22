@@ -1,7 +1,6 @@
 package onvif
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -41,25 +40,6 @@ func (device Device) GetInformation() (DeviceInformation, error) {
 	}
 
 	return result, nil
-}
-
-// GetSystemDateAndTime fetch date and time from ONVIF camera
-func (device Device) GetSystemDateAndTime() (string, error) {
-	// Create SOAP
-	soap := SOAP{
-		Body:  "</tds:GetSystemDateAndTime>",
-		XMLNs: deviceXMLNs,
-	}
-
-	// Send SOAP request
-	response, err := soap.SendRequest(device.XAddr)
-	if err != nil {
-		return "", err
-	}
-
-	// Parse response
-	dateTime, _ := response.ValueForPathString("Envelope.Body.GetSystemDateAndTimeResponse.SystemDateAndTime")
-	return dateTime, nil
 }
 
 // GetCapabilities fetch info of ONVIF camera's capabilities
@@ -211,62 +191,7 @@ func (device Device) GetHostname() (HostnameInformation, error) {
 	if mapHostInfo, ok := ifaceHostInfo.(map[string]interface{}); ok {
 		hostnameInfo.Name = interfaceToString(mapHostInfo["Name"])
 		hostnameInfo.FromDHCP = interfaceToBool(mapHostInfo["FromDHCP"])
-		hostnameInfo.Extension = interfaceToString(mapHostInfo["Extension"])
 	}
 
 	return hostnameInfo, nil
-}
-
-// GetDNS fetch DNS of an ONVIF camera
-func (device Device) GetDNS() (string, error) {
-	// Create SOAP
-	soap := SOAP{
-		Body:  "<tds:GetDNS/>",
-		XMLNs: deviceXMLNs,
-	}
-
-	// Send SOAP request
-	response, err := soap.SendRequest(device.XAddr)
-	if err != nil {
-		return "", err
-	}
-
-	bt, _ := response.JsonIndent("", "    ")
-	fmt.Println(string(bt))
-
-	// Parse response
-	DNS, _ := response.ValueForPathString("Envelope.Body.GetDNSResponse.DNSInformation")
-	return DNS, nil
-}
-
-// GetDNS fetch DNS of an ONVIF camera
-func (device Device) GetNetworkInterfaces() (string, error) {
-	// Create SOAP
-	soap := SOAP{
-		Body:  "<tds:GetNetworkInterfaces/>",
-		XMLNs: deviceXMLNs,
-	}
-
-	// Send SOAP request
-	response, err := soap.SendRequest(device.XAddr)
-	if err != nil {
-		return "", err
-	}
-
-	bt, _ := response.JsonIndent("", "    ")
-	fmt.Println(string(bt))
-
-	// Parse response
-	DNS, _ := response.ValueForPathString("Envelope.Body.GetDNSResponse.DNSInformation")
-	return DNS, nil
-}
-
-func interfaceToString(src interface{}) string {
-	str, _ := src.(string)
-	return str
-}
-
-func interfaceToBool(src interface{}) bool {
-	strBool := interfaceToString(src)
-	return strings.ToLower(strBool) == "true"
 }
