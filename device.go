@@ -1,7 +1,6 @@
 package onvif
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -33,9 +32,12 @@ func (device Device) GetDeviceInformation() (DeviceInformation, error) {
 
 	// Parse interface to struct
 	result := DeviceInformation{}
-	err = interfaceToStruct(&deviceInfo, &result)
-	if err != nil {
-		return result, err
+	if mapInfo, ok := deviceInfo.(map[string]interface{}); ok {
+		result.Manufacturer = interfaceToString(mapInfo["Manufacturer"])
+		result.Model = interfaceToString(mapInfo["Model"])
+		result.FirmwareVersion = interfaceToString(mapInfo["FirmwareVersion"])
+		result.SerialNumber = interfaceToString(mapInfo["SerialNumber"])
+		result.HardwareID = interfaceToString(mapInfo["HardwareId"])
 	}
 
 	return result, nil
@@ -270,20 +272,6 @@ func (device Device) GetNetworkInterfaces() (string, error) {
 	// Parse response
 	DNS, _ := response.ValueForPathString("Envelope.Body.GetDNSResponse.DNSInformation")
 	return DNS, nil
-}
-
-func interfaceToStruct(src, dst interface{}) error {
-	bt, err := json.Marshal(&src)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(bt, &dst)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func interfaceToString(src interface{}) string {
