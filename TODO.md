@@ -1,12 +1,12 @@
 - [X] Camera discovery
 - [ ] OnvifServiceDevice
-  - [X] getDeviceInformation
-  - [X] getSystemDateAndTime
+  - [X] getInformation
+  - [ ] getSystemDateAndTime
   - [X] getCapabilities
   - [X] getDiscoveryMode
   - [X] getScopes
   - [X] getHostname
-  - [X] getDNS
+  - [ ] getDNS
   - [ ] getNetworkInterfaces
   - [ ] getNetworkProtocols
   - [ ] setScopes
