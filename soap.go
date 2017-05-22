@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
 	"time"
 
 	"github.com/clbanning/mxj"
 	"github.com/satori/go.uuid"
-	"net/url"
 )
 
 var httpClient = &http.Client{Timeout: time.Second * 5}
@@ -60,7 +61,18 @@ func (soap SOAP) SendRequest(xaddr string) (mxj.Map, error) {
 	}
 
 	// Parse XML to map
-	return mxj.NewMapXml(responseBody)
+	mapXML, err := mxj.NewMapXml(responseBody)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if SOAP returns fault
+	fault, err := mapXML.ValueForPathString("Envelope.Body.Fault.Reason.Text.#text")
+	if err != nil && fault != "" {
+		return nil, errors.New(fault)
+	}
+
+	return mapXML, nil
 }
 
 func (soap SOAP) createRequest() string {
