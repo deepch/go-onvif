@@ -3,18 +3,17 @@
   - [X] getDeviceInformation
   - [X] getSystemDateAndTime
   - [X] getCapabilities
-  - [ ] getWsdlUrl
-  - [ ] getDiscoveryMode
-  - [ ] getScopes
+  - [X] getDiscoveryMode
+  - [X] getScopes
+  - [X] getHostname
+  - [X] getDNS
+  - [ ] getNetworkInterfaces
+  - [ ] getNetworkProtocols
   - [ ] setScopes
   - [ ] addScopes
   - [ ] removeScopes
-  - [ ] getHostname
   - [ ] setHostname
-  - [ ] getDNS
   - [ ] setDNS
-  - [ ] getNetworkInterfaces
-  - [ ] getNetworkProtocols
   - [ ] setNetworkProtocols
   - [ ] getNetworkDefaultGateway
   - [ ] setNetworkDefaultGateway

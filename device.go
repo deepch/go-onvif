@@ -2,6 +2,7 @@ package onvif
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 )
 
@@ -143,6 +144,132 @@ func (device Device) GetCapabilities() (DeviceCapabilities, error) {
 	}
 
 	return deviceCapabilities, nil
+}
+
+// GetDiscoveryMode fetch network discovery mode of an ONVIF camera
+func (device Device) GetDiscoveryMode() (string, error) {
+	// Create SOAP
+	soap := SOAP{
+		Body:  "<tds:GetDiscoveryMode/>",
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return "", err
+	}
+
+	// Parse response
+	discoveryMode, _ := response.ValueForPathString("Envelope.Body.GetDiscoveryModeResponse.DiscoveryMode")
+	return discoveryMode, nil
+}
+
+// GetScopes fetch scopes of an ONVIF camera
+func (device Device) GetScopes() ([]string, error) {
+	// Create SOAP
+	soap := SOAP{
+		Body:  "<tds:GetScopes/>",
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse response to interface
+	ifaceScopes, err := response.ValuesForPath("Envelope.Body.GetScopesResponse.Scopes")
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert interface to array of scope
+	scopes := []string{}
+	for _, ifaceScope := range ifaceScopes {
+		if mapScope, ok := ifaceScope.(map[string]interface{}); ok {
+			scope := interfaceToString(mapScope["ScopeItem"])
+			scopes = append(scopes, scope)
+		}
+	}
+
+	return scopes, nil
+}
+
+// GetHostname fetch hostname of an ONVIF camera
+func (device Device) GetHostname() (HostnameInformation, error) {
+	// Create SOAP
+	soap := SOAP{
+		Body:  "<tds:GetHostname/>",
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return HostnameInformation{}, err
+	}
+
+	// Parse response to interface
+	ifaceHostInfo, err := response.ValueForPath("Envelope.Body.GetHostnameResponse.HostnameInformation")
+	if err != nil {
+		return HostnameInformation{}, err
+	}
+
+	// Parse interface to struct
+	hostnameInfo := HostnameInformation{}
+	if mapHostInfo, ok := ifaceHostInfo.(map[string]interface{}); ok {
+		hostnameInfo.Name = interfaceToString(mapHostInfo["Name"])
+		hostnameInfo.FromDHCP = interfaceToBool(mapHostInfo["FromDHCP"])
+		hostnameInfo.Extension = interfaceToString(mapHostInfo["Extension"])
+	}
+
+	return hostnameInfo, nil
+}
+
+// GetDNS fetch DNS of an ONVIF camera
+func (device Device) GetDNS() (string, error) {
+	// Create SOAP
+	soap := SOAP{
+		Body:  "<tds:GetDNS/>",
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return "", err
+	}
+
+	bt, _ := response.JsonIndent("", "    ")
+	fmt.Println(string(bt))
+
+	// Parse response
+	DNS, _ := response.ValueForPathString("Envelope.Body.GetDNSResponse.DNSInformation")
+	return DNS, nil
+}
+
+// GetDNS fetch DNS of an ONVIF camera
+func (device Device) GetNetworkInterfaces() (string, error) {
+	// Create SOAP
+	soap := SOAP{
+		Body:  "<tds:GetNetworkInterfaces/>",
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	response, err := soap.SendRequest(device.XAddr)
+	if err != nil {
+		return "", err
+	}
+
+	bt, _ := response.JsonIndent("", "    ")
+	fmt.Println(string(bt))
+
+	// Parse response
+	DNS, _ := response.ValueForPathString("Envelope.Body.GetDNSResponse.DNSInformation")
+	return DNS, nil
 }
 
 func interfaceToStruct(src, dst interface{}) error {

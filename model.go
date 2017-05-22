@@ -34,3 +34,10 @@ type DeviceCapabilities struct {
 	Streaming map[string]bool
 	PTZ       bool
 }
+
+// HostnameInformation contains hostname info of an ONVIF camera
+type HostnameInformation struct {
+	Name      string
+	FromDHCP  bool
+	Extension string
+}
