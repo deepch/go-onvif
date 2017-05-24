@@ -15,9 +15,38 @@ var errWrongDiscoveryResponse = errors.New("Response is not related to discovery
 
 // StartDiscovery send a WS-Discovery message and wait for all matching device to respond
 func StartDiscovery(duration time.Duration) ([]Device, error) {
+	// Get list of interface address
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return []Device{}, err
+	}
+
+	// Fetch IPv4 address
+	ipAddrs := []string{}
+	for _, addr := range addrs {
+		ipAddr, ok := addr.(*net.IPNet)
+		if ok && !ipAddr.IP.IsLoopback() && ipAddr.IP.To4() != nil {
+			ipAddrs = append(ipAddrs, ipAddr.IP.String())
+		}
+	}
+
 	// Create initial discovery results
 	discoveryResults := []Device{}
 
+	// Discover device on each interface's network
+	for _, ipAddr := range ipAddrs {
+		devices, err := discoverDevices(ipAddr, duration)
+		if err != nil {
+			return []Device{}, err
+		}
+
+		discoveryResults = append(discoveryResults, devices...)
+	}
+
+	return discoveryResults, nil
+}
+
+func discoverDevices(ipAddr string, duration time.Duration) ([]Device, error) {
 	// Create WS-Discovery request
 	requestID := "uuid:" + uuid.NewV4().String()
 	request := `		
@@ -45,34 +74,37 @@ func StartDiscovery(duration time.Duration) ([]Device, error) {
 	request = regexp.MustCompile(`\s+`).ReplaceAllString(request, " ")
 
 	// Create UDP address for local and multicast address
-	localAddress, err := net.ResolveUDPAddr("udp4", ":0")
+	localAddress, err := net.ResolveUDPAddr("udp4", ipAddr+":0")
 	if err != nil {
-		return discoveryResults, err
+		return []Device{}, err
 	}
 
 	multicastAddress, err := net.ResolveUDPAddr("udp4", "239.255.255.250:3702")
 	if err != nil {
-		return discoveryResults, err
+		return []Device{}, err
 	}
 
 	// Create UDP connection to listen for respond from matching device
 	conn, err := net.ListenUDP("udp", localAddress)
 	if err != nil {
-		return discoveryResults, err
+		return []Device{}, err
 	}
 	defer conn.Close()
 
 	// Set connection's timeout
 	err = conn.SetDeadline(time.Now().Add(duration))
 	if err != nil {
-		return discoveryResults, err
+		return []Device{}, err
 	}
 
 	// Send WS-Discovery request to multicast address
 	_, err = conn.WriteToUDP([]byte(request), multicastAddress)
 	if err != nil {
-		return discoveryResults, err
+		return []Device{}, err
 	}
+
+	// Create initial discovery results
+	discoveryResults := []Device{}
 
 	// Keep reading UDP message until timeout
 	for {
