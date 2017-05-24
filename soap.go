@@ -67,8 +67,8 @@ func (soap SOAP) SendRequest(xaddr string) (mxj.Map, error) {
 	}
 
 	// Check if SOAP returns fault
-	fault, err := mapXML.ValueForPathString("Envelope.Body.Fault.Reason.Text.#text")
-	if err != nil && fault != "" {
+	fault, _ := mapXML.ValueForPathString("Envelope.Body.Fault.Reason.Text.#text")
+	if fault != "" {
 		return nil, errors.New(fault)
 	}
 
