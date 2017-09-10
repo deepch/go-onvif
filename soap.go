@@ -15,7 +15,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-var httpClient = &http.Client{Timeout: time.Second * 5}
+var httpClient = &http.Client{Timeout: time.Second * 1}
 
 // SOAP contains data for SOAP request
 type SOAP struct {
