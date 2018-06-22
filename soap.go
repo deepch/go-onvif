@@ -15,7 +15,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-var httpClient = &http.Client{Timeout: time.Second * 1}
+var httpClient = &http.Client{Timeout: time.Second * 4}
 
 // SOAP contains data for SOAP request
 type SOAP struct {
@@ -29,13 +29,21 @@ type SOAP struct {
 // SendRequest sends SOAP request to xAddr
 func (soap SOAP) SendRequest(xaddr string) (mxj.Map, error) {
 	// Create SOAP request
-	request := soap.createRequest()
 
 	// Make sure URL valid and add authentication in xAddr
 	urlXAddr, err := url.Parse(xaddr)
+
+	if urlXAddr.User != nil && urlXAddr.User.Username() != "" {
+		soap.User = urlXAddr.User.Username()
+		soap.Password, _ = urlXAddr.User.Password()
+	}
 	if err != nil {
 		return nil, err
 	}
+	request := soap.createRequest()
+
+	// Make sure URL valid and add authentication in xAddr
+	//urlXAddr, err := url.Parse(xaddr)
 
 	if soap.User != "" {
 		urlXAddr.User = url.UserPassword(soap.User, soap.Password)
@@ -88,7 +96,7 @@ func (soap SOAP) createRequest() string {
 
 	// Set request header
 	if soap.User != "" {
-		request += "<s:header>" + soap.createUserToken() + "</s:header>"
+		request += "<s:Header>" + soap.createUserToken() + "</s:Header>"
 	}
 
 	// Set request body

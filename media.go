@@ -3,6 +3,7 @@ package onvif
 var mediaXMLNs = []string{
 	`xmlns:trt="http://www.onvif.org/ver10/media/wsdl"`,
 	`xmlns:tt="http://www.onvif.org/ver10/schema"`,
+	`xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl"`,
 }
 
 // GetProfiles fetch available media profiles of ONVIF camera

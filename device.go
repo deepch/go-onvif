@@ -7,6 +7,7 @@ import (
 var deviceXMLNs = []string{
 	`xmlns:tds="http://www.onvif.org/ver10/device/wsdl"`,
 	`xmlns:tt="http://www.onvif.org/ver10/schema"`,
+	`xmlns:tptz="http://www.onvif.org/ver20/ptz/wsdl"`,
 }
 
 // GetInformation fetch information of ONVIF camera
@@ -164,6 +165,42 @@ func (device Device) GetScopes() ([]string, error) {
 	}
 
 	return scopes, nil
+}
+
+// GetHostname fetch hostname of an ONVIF camera
+func (device Device) Ptz(Token, x, y, z string) error {
+	// Create SOAP
+	soap := SOAP{
+		Body: `<tptz:ContinuousMove>
+    <tptz:ProfileToken>` + Token + `</tptz:ProfileToken>
+    <tptz:Velocity>
+     <tt:PanTilt x="` + x + `" y="` + y + `" space="">
+     </tt:PanTilt>
+     <tt:Zoom x="` + z + `" space="">
+     </tt:Zoom>
+    </tptz:Velocity>
+   </tptz:ContinuousMove>`,
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	_, err := soap.SendRequest(device.XAddr)
+	return err
+}
+func (device Device) PtzStop(Token, x, y, z string) error {
+	// Create SOAP
+	soap := SOAP{
+		Body: `<tptz:Stop>
+    <tptz:ProfileToken>` + Token + `</tptz:ProfileToken>
+		 <tptz:PanTilt>false</tptz:PanTilt>
+		 <tptz:Zoom>false</tptz:Zoom>
+   </tptz:Stop>`,
+		XMLNs: deviceXMLNs,
+	}
+
+	// Send SOAP request
+	_, err := soap.SendRequest(device.XAddr)
+	return err
 }
 
 // GetHostname fetch hostname of an ONVIF camera
